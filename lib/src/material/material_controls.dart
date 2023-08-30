@@ -78,37 +78,47 @@ class _MaterialControlsState extends State<MaterialControls>
       onHover: (_) {
         _cancelAndRestartTimer();
       },
-      child: GestureDetector(
-        onTap: () => _cancelAndRestartTimer(),
-        child: AbsorbPointer(
-          absorbing: notifier.hideStuff,
-          child: Stack(
-            children: [
-              if (_displayBufferingIndicator)
-                const Center(
-                  child: CircularProgressIndicator(),
-                )
-              else
-                _buildHitArea(),
-              _buildActionBar(),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  if (_subtitleOn)
-                    Transform.translate(
-                      offset: Offset(
-                        0.0,
-                        notifier.hideStuff ? barHeight * 0.8 : 0.0,
-                      ),
-                      child:
-                          _buildSubtitles(context, chewieController.subtitle!),
-                    ),
-                  _buildBottomBar(context),
+      child: Stack(
+        children: [
+          GestureDetector(
+            onTap: () => _cancelAndRestartTimer(),
+            child: AbsorbPointer(
+              absorbing: notifier.hideStuff,
+              child: Stack(
+                children: [
+                  if (_displayBufferingIndicator)
+                    const Center(
+                      child: CircularProgressIndicator(),
+                    )
+                  else
+                    _buildHitArea(),
+                  _buildBackBtn(),
+                  _buildActionBar(),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: <Widget>[
+                      if (_subtitleOn)
+                        Transform.translate(
+                          offset: Offset(
+                            0.0,
+                            notifier.hideStuff ? barHeight * 0.8 : 0.0,
+                          ),
+                          child: _buildSubtitles(
+                              context, chewieController.subtitle!),
+                        ),
+                      _buildBottomBar(context),
+                    ],
+                  ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
+          if (chewieController.isFullScreen) ...[
+            if (chewieController.showDonationButton) ...[
+              _buildDonateBtn(),
+            ]
+          ]
+        ],
       ),
     );
   }
@@ -154,6 +164,69 @@ class _MaterialControlsState extends State<MaterialControls>
               if (chewieController.showOptions) _buildOptionsButton(),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDonateBtn() {
+    return Positioned(
+      bottom: barHeight,
+      left: 0,
+      child: SafeArea(
+        // child: Transform.translate(
+        //   offset: Offset(0.0, notifier.hideStuff ? barHeight * 0.8 : 0.0),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            if (chewieController.donationBtnCallback != null) {
+              chewieController.donationBtnCallback!();
+            }
+          },
+          child: Container(
+            margin: const EdgeInsets.all(15.0),
+            padding: const EdgeInsets.all(5.0),
+            color: Colors.black.withOpacity(0.5),
+            child: const Text(
+              "ARS 후원 (한통화 1만원)",
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+        // ),
+      ),
+    );
+  }
+
+  Widget _buildBackBtn() {
+    return Positioned(
+      top: 0,
+      left: 0,
+      child: SafeArea(
+        child: Row(
+          children: [
+            AnimatedOpacity(
+              opacity: notifier.hideStuff ? 0.0 : 1.0,
+              duration: const Duration(milliseconds: 250),
+              child: Container(
+                margin: const EdgeInsets.all(5.0),
+                padding: const EdgeInsets.all(5.0),
+                child: IconButton(
+                  onPressed: () async {
+                    if (chewieController.isFullScreen) _onExpandCollapse();
+                    // await Future<void>.delayed(Duration(milliseconds: 100));
+                    if (chewieController.backBtnCallback != null) {
+                      chewieController.backBtnCallback!();
+                    }
+                  },
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -363,7 +436,9 @@ class _MaterialControlsState extends State<MaterialControls>
   }
 
   Widget _buildHitArea() {
-    final bool isFinished = _latestValue.position >= _latestValue.duration;
+    final bool isFinished = chewieController.isLive
+        ? false
+        : _latestValue.position >= _latestValue.duration;
     final bool showPlayButton =
         widget.showPlayButton && !_dragging && !notifier.hideStuff;
 

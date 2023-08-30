@@ -154,7 +154,9 @@ class ChewieState extends State<Chewie> {
     final TransitionRoute<void> route = PageRouteBuilder<void>(
       pageBuilder: _fullScreenRoutePageBuilder,
     );
-
+    if (widget.controller.fullScreenCallback != null) {
+      widget.controller.fullScreenCallback!(context);
+    }
     onEnterFullScreen();
 
     if (!widget.controller.allowedScreenSleep) {
@@ -276,6 +278,11 @@ class ChewieController extends ChangeNotifier {
     this.allowMuting = true,
     this.allowPlaybackSpeedChanging = true,
     this.useRootNavigator = true,
+    this.soundOnly = false,
+    required this.showDonationButton,
+    this.donationBtnCallback,
+    this.backBtnCallback,
+    this.fullScreenCallback,
     this.playbackSpeeds = const [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
     this.systemOverlaysOnEnterFullScreen,
     this.deviceOrientationsOnEnterFullScreen,
@@ -324,6 +331,11 @@ class ChewieController extends ChangeNotifier {
     bool? allowMuting,
     bool? allowPlaybackSpeedChanging,
     bool? useRootNavigator,
+    bool? soundOnly,
+    bool? showDonationButton,
+    void Function()? donationBtnCallback,
+    void Function()? backBtnCallback,
+    void Function(BuildContext context)? fullScreenCallback,
     Duration? hideControlsTimer,
     EdgeInsets? controlsSafeAreaMinimum,
     List<double>? playbackSpeeds,
@@ -373,6 +385,11 @@ class ChewieController extends ChangeNotifier {
       allowPlaybackSpeedChanging:
           allowPlaybackSpeedChanging ?? this.allowPlaybackSpeedChanging,
       useRootNavigator: useRootNavigator ?? this.useRootNavigator,
+      soundOnly: soundOnly ?? this.soundOnly,
+      showDonationButton: showDonationButton ?? this.showDonationButton,
+      donationBtnCallback: donationBtnCallback ?? this.donationBtnCallback,
+      backBtnCallback: backBtnCallback ?? this.backBtnCallback,
+      fullScreenCallback: fullScreenCallback ?? this.fullScreenCallback,
       playbackSpeeds: playbackSpeeds ?? this.playbackSpeeds,
       systemOverlaysOnEnterFullScreen: systemOverlaysOnEnterFullScreen ??
           this.systemOverlaysOnEnterFullScreen,
@@ -507,6 +524,17 @@ class ChewieController extends ChangeNotifier {
 
   /// Defines if push/pop navigations use the rootNavigator
   final bool useRootNavigator;
+
+  final bool soundOnly;
+
+  final bool showDonationButton;
+
+  final void Function()? donationBtnCallback;
+
+  final void Function()? backBtnCallback;
+
+  /// Overlay를 사용할 경우 Fullscreen 제대로 표시하기 위한 콜백함수를 지정.
+  final void Function(BuildContext context)? fullScreenCallback;
 
   /// Defines the [Duration] before the video controls are hidden. By default, this is set to three seconds.
   final Duration hideControlsTimer;

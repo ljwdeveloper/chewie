@@ -46,7 +46,13 @@ class PlayerWithControls extends StatelessWidget {
               child: AspectRatio(
                 aspectRatio: chewieController.aspectRatio ??
                     chewieController.videoPlayerController.value.aspectRatio,
-                child: VideoPlayer(chewieController.videoPlayerController),
+                child: chewieController.soundOnly
+                    ? Container(
+                        color: Colors.black,
+                        child: Image.asset(
+                            "assets/images/ic_etc/bg_source_sound.png"),
+                      )
+                    : VideoPlayer(chewieController.videoPlayerController),
               ),
             ),
           ),
